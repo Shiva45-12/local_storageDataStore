@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data List with Search</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: linear-gradient(135deg, rgb(218, 15, 218), #2342cd);
+    }
+
+    h2 {
+      color: #333;
+      background-color: antiquewhite;
+      box-shadow: 4px 6px 8px;
+      margin: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    #openModelBtn {
+      background: #4CAF50;
+      color: white;
+      height: 40px;
+      width: 120px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 2px 4px 6px black;
+      display: block;
+      margin: 10px auto;
+    }
+
+    #searchBar {
+      margin-top: 20px;
+      width: 300px;
+      padding: 10px;
+      border: 2px solid black;
+      border-radius: 8px;
+      box-shadow: 2px 4px 7px black;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* table {
+      margin-top: 20px;
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 2px 4px 7px black;
+    }
+
+    table th,
+    table td {
+      border: 1px solid black;
+      padding: 10px;
+      text-align: center;
+    }
+
+    table th {
+      background: antiquewhite;
+    } */
+
+    .model {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modelcontent {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 420px;
+      box-shadow: 8px 10px 12px black;
+    }
+
+    .close {
+      float: right;
+      cursor: pointer;
+      font-size: 18px;
+      color: #aaa;
+    }
+
+    form label {
+      display: block;
+      margin-top: 10px;
+      /* padding: 5px; */
+      font-weight: bold;
+      text-align: left;
+    }
+
+    form input,
+    form select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid black;
+      border-radius: 6px;
+    }
+
+    form button {
+      margin-top: 15px;
+      width: 100%;
+      background: antiquewhite;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .deleteBtn {
+      background-color: red;
+      color: white;
+      height: 30px;
+      width: 150px;
+      margin-left: 10px;
+      border-radius: 8px;
+      box-shadow: 3px, 4px, 6px black;
+    }
+
+    .item {
+      margin: 10px 0;
+      padding: 12px;
+      background: #fff;
+      border-radius: 6px;
+      /* box-shadow: 0,2px,6px rgba(0,0,0,0.1); */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Data List with Model Form + Search</h2>
+  <button id="openModelBtn">Add Data</button>
+
+  <!-- Search Bar -->
+  <input type="text" id="searchBar" placeholder="Search by Name or Email...">
+
+  <!-- Data list -->
+  <div id="Datalist"></div>
+
+  <!-- model -->
+  <div class="model" id="myModel">
+    <div class="modelcontent">
+      <span class="close" id="closeModel">&times;</span>
+      <h3>Add Data</h3>
+      <form id="dataForm">
+        <label>Name</label>
+        <input type="text" id="nameInput" required>
+
+        <label>Email</label>
+        <input type="email" id="emailInput" required>
+
+        <label>Age</label>
+        <input type="number" id="ageInput" required>
+
+        <label for="">Mobile No</label>
+        <input type="number" name="" id="mobileInput" required>
+
+        <label for="">Address</label>
+        <input type="text" name="" id="addressInput" required>
+
+        <label>Gender</label>
+        <select id="genderInput" required>
+          <option value="">Select</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const model = document.getElementById("myModel");
+    const openBtn = document.getElementById("openModelBtn");
+    const closeBtn = document.getElementById("closeModel");
+    const form = document.getElementById("dataForm");
+    const nameInput = document.getElementById("nameInput");
+    const emailInput = document.getElementById("emailInput");
+    const ageInput = document.getElementById("ageInput");
+    const genderInput = document.getElementById("genderInput");
+    const dataList = document.getElementById("Datalist");
+    const searchBar = document.getElementById("searchBar");
+    const addressInput = document.getElementById("addressInput");
+    const mobileInput = document.getElementById("mobileInput");
+
+
+    // show data
+
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+
+    //render data from local storage
+
+    function renderData() {
+      dataList.innerHTML = ""
+      users.forEach((user, index) => {
+        const div = document.createElement("div"); 
+        div.className = "item";
+        div.innerHTML = `<span><strong>${user.name}</strong><br>${user.email} | Age: ${user.age} | Mobile: ${user.mobile} | Address: ${user.address}</span>`;
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.className = "deleteBtn";
+        delBtn.onclick = () => deleteBtn(index);
+
+
+        div.appendChild(delBtn); 
+        dataList.appendChild(div);
+      });
+    }
+    renderData();
+
+    // Delete User
+
+    function deleteBtn(index) {
+      Swal.fire({
+        title: "Are You Sure ?",
+        text: "This User will be deleted",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e74d3c",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes , Delete it"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          users.splice(index, 1);
+          saveData();
+          renderData();
+          Swal.fire("Deleted!", "User has been removed")
+        }
+      })
+    }
+
+
+
+    // save data
+    function saveData() {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    // Display Data in table
+    // function displayData(filter = "") {
+    //   let filteredUsers = users.filter(u =>
+    //     u.name.toLowerCase().includes(filter.toLowerCase()) ||
+    //     u.email.toLowerCase().includes(filter.toLowerCase())
+    //   );
+
+    //   if (filteredUsers.length === 0) {
+    //     dataList.innerHTML = "<p style='color:white;text-align:center;'>No Data Found</p>";
+    //     return;
+    //   }
+
+    //   let table = `<table>
+    //     <tr>
+    //       <th>Name</th>
+    //       <th>Email</th>
+    //       <th>Age</th>
+    //       <th>Gender</th>
+    //     </tr>`;
+
+    //   filteredUsers.forEach(user => {
+    //     table += `
+    //       <tr>
+    //         <td>${user.name}</td>
+    //         <td>${user.email}</td>
+    //         <td>${user.age}</td>
+    //         <td>${user.gender}</td>
+    //       </tr>`;
+    //   });
+
+    //   table += "</table>";
+    //   dataList.innerHTML = table;
+    // }
+
+    // Form submit
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const age = ageInput.value.trim();
+      const gender = genderInput.value;
+      const mobile=mobileInput.value;
+      const address=addressInput.value;
+
+      if (name && email && age && gender && mobile && address) {
+        users.push({ name, email, age, gender, mobile, address});
+        saveData();
+        renderData();
+        form.reset();
+        model.style.display = "none";
+        displayData();
+
+        Swal.fire({
+          icon: 'success',
+          title: 'User Added',
+          text: `${name} added successfully`,
+          timer: 1500,
+          showConfirmButton: false
+        })
+      }
+    };
+
+    // Modal open/close
+    openBtn.onclick = () => model.style.display = "flex";
+    closeBtn.onclick = () => model.style.display = "none";
+    window.onclick = (e) => { if (e.target === model) model.style.display = "none"; }
+
+    // Search functionality (live filter)
+    searchBar.addEventListener("input", (e) => {
+      displayData(e.target.value);
+    });
+
+    // Initial load from localStorage
+    // displayData();
+  </script>
+</body>
+
+</html>
